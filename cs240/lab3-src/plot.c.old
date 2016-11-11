@@ -1,0 +1,157 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "rpn.h"
+
+#define MAXCOLS 80
+#define MAXROWS 40
+
+char plot[MAXROWS][MAXCOLS];
+
+void clearPlot()
+{
+	for (int i = 0; i < MAXROWS; i++) {
+		for (int j = 0; j < MAXCOLS; j++) {
+			plot[i][j] = ' ';
+		}
+	}
+}
+
+void printPlot()
+{
+	for (int i = 0; i < MAXROWS; i++) {
+		for (int j = 0; j < MAXCOLS; j++) {
+			printf("%c", plot[i][j]);
+		}
+		printf("\n");
+	}
+}
+
+void plotXY(int x, int y, char c) {
+	if ( x <0 || x>=MAXCOLS || y < 0 || y >=MAXROWS) return;
+	plot[y][x]=c;
+}
+
+void createPlot( char * funcFile, double minX, double maxX) {
+	int nvals = MAXCOLS;
+	double xx[MAXCOLS];
+	double yy[MAXCOLS];
+	double minimum;
+	double maximum;
+	minimum = minX;
+	maximum = maxX;
+	int i;
+	for (i = 0; i < MAXCOLS-1; i++)
+	{
+		double x = minimum + (maximum-minimum)*i/MAXCOLS;
+		double y = rpn_eval(funcFile,x);
+		xx[i]=x;
+		yy[i]=y;
+	}
+	int j;
+	double minY;
+	double maxY;
+	for (j = 0; j < MAXCOLS-1; j++)
+	{
+		if (j == 0)
+	{
+		minY = yy[j];
+		maxY=yy[j];
+	}
+	if (yy[j] < minY)
+	{	
+		minY = yy[j];
+	}
+	if (yy[j] > maxY)
+	{
+		maxY = yy[j];
+	}
+	}
+	clearPlot();
+	//Plot x axis
+	int rangeX = maximum-minimum;
+	int rangeY = maxY-minY;
+	double scaleX = MAXCOLS/rangeX;
+	//int scaleY = MAXROWS/rangeY;
+	double scaleY = MAXROWS/rangeY;
+
+	//Plot y axis
+	//plot if y < 0, y > 0, y both ways
+	// find minY/maxY first
+	int xIndex;
+	int yIndex;
+	//xIndex = scaleX*20;
+	//yIndex = minX+minX*scaleX;
+	yIndex=MAXCOLS/2;
+	//xIndex=scaleY*40;
+	xIndex=MAXROWS/2;
+	//printf("maxROWS=%f, maxCOLS=%f, Xindex=%f, Yindex=%f, minY=%f, maxY=%f\n",MAXROWS, MAXCOLS, xIndex,yIndex,minY,maxY);
+	double k;
+	if (minY > 0) {
+		for (k = 0; k < MAXCOLS; k++)
+			plotXY(k,minY,'_');
+		for (k = 0; k < MAXROWS; k++)
+			plotXY(yIndex-1,k,'|');
+	}
+	if (maxY < 0)
+	{
+		for (k = minX; k < rangeX; k+=scaleX) // maxcols-1
+	{
+		plotXY(k,maxY,'_');
+	}
+	for (k = 0; k < MAXROWS; k++)
+	{
+		plotXY(yIndex,k,'|');
+	}
+	}
+	if (minY < 0 && maxY > 0)
+	{
+		for (k = 0; k < MAXCOLS; k++)
+	{
+		plotXY(k,xIndex-1,'_'); // xindex-1
+	}
+	for (k = 0; k < MAXROWS; k++)
+	{
+		plotXY(yIndex,k,'|');
+	}
+	}
+	// Plot function. Use scaling.
+	// minX is plotted at column 0 and maxX is plotted ar MAXCOLS-1
+	// minY is plotted at row 0 and maxY is plotted at MAXROWS-1
+	for (i = 0; i < MAXCOLS; i++)
+	{
+		int x = i;
+//  	int y = (yy[i]-minY)*scaleY;
+	int y = (int)((yy[i] - minY) * MAXROWS / (maxY - minY));
+	//if (MAXROWS - y - 1 <= maxY && MAXROWS-y-1 >=minY)
+	//{
+		y = MAXROWS - y -1;
+	//}
+	//else
+	//{
+	//	while (MAXROWS-y-1 > maxY)
+	//	{
+	//		y=MAXROWS-y-1;
+	//	}
+	//}
+	plotXY(x,y,'*');
+	}
+
+	printPlot();
+
+}
+
+int main(int argc, char ** argv)
+{
+	printf("RPN Plotter.\n");
+	
+	if (argc < 4) {
+		printf("Usage: plot func-file xmin xmax\n");
+		exit(1);
+	}
+	char * fName = argv[1];
+	int xmin = atof(argv[2]);
+	int xmax = atof(argv[3]);
+	createPlot(fName, xmin, xmax);
+	}

@@ -1,0 +1,9 @@
+mytest test1                        : 3   of 3  
+mytest test2                        : 3   of 3  
+mytest test3                        : 0   of 3  
+mytest test4                        : 0   of 3  
+mytest test5                        : 0   of 3  
+mytest test6                        : 3   of 3  
+mytest test7                        : 0   of 3  
+mytest test8                        : 0   of 3  
+mytest test9                        : 0   of 1  
